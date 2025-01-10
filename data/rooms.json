@@ -1,0 +1,16 @@
+{
+  "rooms": [
+    {
+      "roomNumber": 101,
+      "isBooked": true
+    },
+    {
+      "roomNumber": 102,
+      "isBooked": true
+    },
+    {
+      "roomNumber": 103,
+      "isBooked": false
+    }
+  ]
+}
