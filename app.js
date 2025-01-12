@@ -1,7 +1,18 @@
 const express = require('express');
-const fs = require('fs');
-const router = express.Router();
+const session = require('express-session');
+const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+
+const app = express();
+app.use(bodyParser.json());
+// Session middleware
+app.use(session({
+    secret: 'your_secret_key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
 
 const roomsFilePath = './data/rooms.json';
 
@@ -17,7 +28,7 @@ const writeRoomData = (data) => {
 };
 
 // Booking Room
-router.post('/book', (req, res) => {
+app.post('/book', (req, res) => {
     const { name, email, contact, checkInDate, checkOutDate } = req.body;
     let rooms = getRoomData().rooms;
 
@@ -40,13 +51,13 @@ router.post('/book', (req, res) => {
     writeRoomData({ rooms });
 
     res.json({
-        message: 'Room booked successfully!',
-        bookingDetails: req.session.booking
+        message: 'Room booked successfully',
+        bookingDetails: req.session.bookings
     });
 });
 
 // View Booking Details for a Specific Email
-router.get('/view', (req, res) => {
+app.get('/view', (req, res) => {
     const { email } = req.query;
 
     if (!req.session.bookings) {
@@ -64,7 +75,7 @@ router.get('/view', (req, res) => {
 });
 
 // View All Guests
-router.get('/guests', (req, res) => {
+app.get('/guests', (req, res) => {
     if (req.session.bookings && req.session.bookings.length > 0) {
         return res.json(req.session.bookings);
     } else {
@@ -73,7 +84,7 @@ router.get('/guests', (req, res) => {
 });
 
 // Cancel Room Booking
-router.delete('/cancel', (req, res) => {
+app.delete('/cancel', (req, res) => {
     const { email, roomNumber } = req.body;
 
     if (!req.session.bookings) {
@@ -94,12 +105,12 @@ router.delete('/cancel', (req, res) => {
         req.session.bookings.splice(bookingIndex, 1);
         return res.json({ message: 'Booking canceled successfully' });
     } else {
-        return res.status(404).json({ message: 'Booking not found' });
+        return res.status(404).json({ message: 'No bookings found' });
     }
 });
 
 // Modify Booking
-router.put('/update-booking', (req, res) => {
+app.put('/update-booking', (req, res) => {
     const { email, roomNumber, checkInDate, checkOutDate } = req.body;
 
     // Find the booking to modify based on email and room number
@@ -119,4 +130,10 @@ router.put('/update-booking', (req, res) => {
     }
 });
 
-module.exports = router;
+module.exports = app;
+
+
+
+
+
+
